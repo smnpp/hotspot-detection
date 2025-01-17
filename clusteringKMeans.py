@@ -89,7 +89,7 @@ def main():
             df.loc[idx, 'cluster'] = -1
     
     # Définir les mots exclus pour les tags
-    mots_exclus = ['unknown', 'lyon', '', 'france', 'europe', 'nuit', 'streetphotography', 'french', 'rhônealpes', 'fêtedeslumières', 'city', 'internetdesobjets']
+    mots_exclus = ['unknown', 'lyon', '', 'france', 'europe', 'nuit', 'streetphotography', 'french', 'rhônealpes', 'fêtedeslumières', 'city', 'internetdesobjets', 'iot', 'nigth']
     
     # Trouver les tags représentatifs pour chaque cluster
     cluster_tags = {}
