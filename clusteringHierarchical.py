@@ -1,3 +1,17 @@
+#imports
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+from scipy.cluster.hierarchy import dendrogram, linkage
+from sklearn.cluster import AgglomerativeClustering
+import folium
+from sklearn.metrics.pairwise import haversine_distances
+from math import radians
+import colorsys
+from collections import Counter
+import webbrowser
+import os
+
 # load data from table file where entries are separated with a ','
 dataHierarch = pd.read_table("datasetCleaned.csv", sep=",", low_memory=False)
 
