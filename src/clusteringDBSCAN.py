@@ -1,112 +1,120 @@
 import pandas as pd
 import numpy as np
-import folium
 from sklearn.cluster import DBSCAN
-from sklearn.preprocessing import StandardScaler
-from sklearn.metrics.pairwise import haversine_distances
-from math import radians
-import colorsys
-from collections import Counter
+import folium
 from scipy.spatial import ConvexHull
-import webbrowser
 import os
+import webbrowser
 
-def main():
-    # Charger les données
+
+def load_and_preprocess_data(filepath, sample_size=10000):
+    """
+    Charger et nettoyer les données pour DBSCAN.
+    """
     print("Chargement des données...")
-    df = pd.read_csv('data/datasetCleaned.csv', low_memory=False)
-    df = df.head(10000)  # Limiter à 10000 points pour commencer
-    print(f"Taille du dataset: {len(df)}")
-    
-    # Préparer les données pour le clustering
-    X = df[['lat', 'long']].values
-    
-    # Paramètres du clustering DBSCAN
-    eps = 0.0004  # Rayon de voisinage
-    min_samples = 5  # Nombre minimum de points pour former un cluster
-    
-    # Appliquer DBSCAN
+    df = pd.read_csv(filepath, low_memory=False)
+
+    # Limiter à une taille spécifique pour améliorer les performances
+    df = df.head(sample_size)
+    print(f"Taille du dataset : {len(df)}")
+
+    # Supprimer les doublons basés sur lat/long
+    df = df.drop_duplicates(subset=['lat', 'long'])
+    print(f"Nombre de points après suppression des doublons : {len(df)}")
+
+    return df
+
+
+def apply_dbscan(data, eps, min_samples):
+    """
+    Appliquer DBSCAN pour le clustering.
+    """
     print("Application de DBSCAN...")
+
+    # Préparer les données géographiques pour le clustering
+    X = data[['lat', 'long']].values
+
+    # Appliquer DBSCAN
     dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-    df['cluster'] = dbscan.fit_predict(X)
-    
-    # Nombre de clusters trouvés (excluant le bruit qui est -1)
-    n_clusters = len(set(df['cluster'])) - (1 if -1 in df['cluster'] else 0)
+    data['cluster'] = dbscan.fit_predict(X)
+
+    # Calculer les statistiques des clusters
+    n_clusters = len(set(data['cluster'])) - (1 if -1 in data['cluster'] else 0)
+    n_noise = sum(data['cluster'] == -1)
     print(f"Nombre de clusters trouvés : {n_clusters}")
-    
-    # Générer les couleurs pour les clusters
-    colors = []
-    for i in range(n_clusters):
-        hue = i / n_clusters
-        rgb = colorsys.hsv_to_rgb(hue, 0.8, 0.8)
-        color = '#{:02x}{:02x}{:02x}'.format(
-            int(rgb[0]*255), int(rgb[1]*255), int(rgb[2]*255))
-        colors.append(color)
-    colors = ['#808080'] + colors  # Ajouter une couleur grise pour les points de bruit
-    
-    # Créer la carte
+    print(f"Nombre de points de bruit : {n_noise}")
+
+    return data, n_clusters
+
+
+def visualize_clusters(data, n_clusters):
+    """
+    Visualiser les clusters sur une carte interactive avec Folium.
+    """
     print("Création de la carte...")
-    carte = folium.Map(location=[df['lat'].mean(), df['long'].mean()], zoom_start=12)
-    
-    # Créer les zones de clusters
+
+    # Créer une carte centrée sur les données
+    m = folium.Map(location=[data['lat'].mean(), data['long'].mean()], zoom_start=12)
+
+    # Générer des couleurs uniques pour chaque cluster
+    colors = ['#808080']  # Couleur grise pour le bruit
+    colors += [
+        f"#{''.join(np.random.choice(list('0123456789ABCDEF'), 6))}"
+        for _ in range(n_clusters)
+    ]
+
+    # Ajouter les points des clusters
+    for _, row in data.iterrows():
+        cluster_id = row['cluster']
+        color_idx = cluster_id + 1 if cluster_id >= 0 else 0  # Couleur grise pour le bruit
+        folium.CircleMarker(
+            location=[row['lat'], row['long']],
+            radius=3,
+            color=colors[color_idx],
+            fill=True,
+            fill_opacity=0.5 if cluster_id >= 0 else 0.2
+        ).add_to(m)
+
+    # Ajouter les polygones convexes pour les clusters
     for cluster_id in range(n_clusters):
-        mask = df['cluster'] == cluster_id
-        cluster_points = X[mask]
-        
-        # Vérifier qu'il y a assez de points pour former un polygone
-        unique_points = np.unique(cluster_points, axis=0)
-        if len(unique_points) >= 3:
+        cluster_points = data[data['cluster'] == cluster_id][['lat', 'long']].values
+        if len(cluster_points) >= 3:  # Un polygone nécessite au moins 3 points
             try:
-                jittered_points = unique_points + np.random.normal(0, 1e-10, unique_points.shape)
-                hull = ConvexHull(jittered_points)
-                hull_points = jittered_points[hull.vertices]
-                polygon_points = [[point[0], point[1]] for point in hull_points]
-                
+                hull = ConvexHull(cluster_points)
+                hull_points = cluster_points[hull.vertices]
                 folium.Polygon(
-                    locations=polygon_points,
+                    locations=[[point[0], point[1]] for point in hull_points],
                     color=colors[cluster_id + 1],
                     weight=2,
                     fill=True,
                     fill_color=colors[cluster_id + 1],
-                    fill_opacity=0.2,
-                    popup=f'Cluster {cluster_id}'
-                ).add_to(carte)
+                    fill_opacity=0.2
+                ).add_to(m)
             except Exception as e:
-                print(f"Impossible de créer le polygone pour le cluster {cluster_id}: {e}")
-    
-    # Ajouter les points
-    for idx, row in df.iterrows():
-        color_idx = row['cluster'] + 1 if row['cluster'] >= 0 else 0
-        cluster_name = f"Cluster {row['cluster']}" if row['cluster'] >= 0 else "Non clustérisé"
-        
-        # Créer le lien Flickr
-        flickr_link = f"https://www.flickr.com/photos/{row['user']}/{row['id']}"
-        
-        # Créer le popup
-        popup_content = f"""
-        <div style="min-width: 200px;">
-        Cluster: {cluster_name}<br>
-        <a href="{flickr_link}" target="_blank">Voir la photo sur Flickr</a>
-        </div>
-        """
-        
-        # Ajuster la taille et l'opacité selon que le point est dans un cluster ou non
-        radius = 3 if row['cluster'] >= 0 else 3
-        opacity = 0.7 if row['cluster'] >= 0 else 0.15
-        
-        folium.CircleMarker(
-            location=[row['lat'], row['long']],
-            radius=radius,
-            color=colors[color_idx],
-            fill=True,
-            popup=popup_content,
-            fill_opacity=opacity
-        ).add_to(carte)
-    
-    # Sauvegarder et ouvrir la carte
+                print(f"Erreur lors de la création du polygone pour le cluster {cluster_id}: {e}")
+
+    # Sauvegarder la carte
     print("Sauvegarde de la carte...")
-    carte.save('output/carte_clusters_dbscan.html')
-    webbrowser.open('file://' + os.path.realpath('output/carte_clusters_dbscan.html'))
+    m.save("output/clusteringDBSCAN.html")
+    webbrowser.open(f'file:///{os.path.abspath("output/clusteringDBSCAN.html")}')
+
+
+def main():
+    # Paramètres
+    data_path = "data/datasetCleaned.csv"
+    sample_size = 10000  # Limite des points pour améliorer les performances
+    eps = 0.0004  # Rayon de voisinage
+    min_samples = 4  # Nombre minimum de points pour former un cluster
+
+    # Charger et préparer les données
+    df = load_and_preprocess_data(data_path, sample_size)
+
+    # Appliquer DBSCAN
+    clustered_data, n_clusters = apply_dbscan(df, eps, min_samples)
+
+    # Visualiser les clusters
+    visualize_clusters(clustered_data, n_clusters)
+
 
 if __name__ == "__main__":
     main()
