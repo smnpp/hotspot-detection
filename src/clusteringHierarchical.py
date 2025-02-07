@@ -13,7 +13,7 @@ import webbrowser
 import os
 
 # load data from table file where entries are separated with a ','
-dataHierarch = pd.read_table("datasetCleaned.csv", sep=",", low_memory=False)
+dataHierarch = pd.read_table("data/datasetCleaned.csv", sep=",", low_memory=False)
 
 # remove leading and trailing whitespaces from column names
 dataHierarch.columns = dataHierarch.columns.str.strip()
@@ -139,8 +139,8 @@ def cluster_and_visualize(data1, data2, lyon_bounds, mots_exclus):
 
     # Karte speichern und öffnen
     print("Karte speichern...")
-    m.save('carte_clusters.html')
-    webbrowser.open(f'file:///{os.path.abspath("carte_clusters.html")}')
+    m.save('data/carte_clusters.html')
+    webbrowser.open(f'file:///{os.path.abspath("data/carte_clusters.html")}')
 
     return data1, data2
 

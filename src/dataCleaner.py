@@ -1,19 +1,10 @@
 # load pandas to deal with the data
 import pandas as pd
 # plotting
-import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
 
-# load folium to create maps
-import folium
-from folium import Map
-from folium.plugins import HeatMap
-from folium.plugins import MarkerCluster
-from sklearn.preprocessing import StandardScaler
-
 # load data from table file where entries are separated with a ','
-data = pd.read_table("dataset.csv", sep=",", low_memory=False)
+data = pd.read_table("data/dataset.csv", sep=",", low_memory=False)
 
 # remove leading and trailing whitespaces from column names
 data.columns = data.columns.str.strip()
@@ -65,5 +56,5 @@ data_cleaned_d = data_cleaned_mv.drop_duplicates(subset=['id', 'user', 'lat', 'l
 # Afficher la taille après suppression des doublons
 print(f"After removing exact duplicates: {len(data_cleaned_d)}")
 
-data_cleaned_d.to_csv('datasetCleaned.csv', index=False)
-print("Données nettoyées sauvegardées dans 'datasetCleaned.csv'")
+data_cleaned_d.to_csv('data/datasetCleaned.csv', index=False)
+print("Données nettoyées sauvegardées dans 'data/datasetCleaned.csv'")

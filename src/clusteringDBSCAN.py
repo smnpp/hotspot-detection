@@ -14,7 +14,7 @@ import os
 def main():
     # Charger les données
     print("Chargement des données...")
-    df = pd.read_csv('datasetCleaned.csv', low_memory=False)
+    df = pd.read_csv('data/datasetCleaned.csv', low_memory=False)
     df = df.head(10000)  # Limiter à 10000 points pour commencer
     print(f"Taille du dataset: {len(df)}")
     
@@ -105,8 +105,8 @@ def main():
     
     # Sauvegarder et ouvrir la carte
     print("Sauvegarde de la carte...")
-    carte.save('carte_clusters_dbscan.html')
-    webbrowser.open('file://' + os.path.realpath('carte_clusters_dbscan.html'))
+    carte.save('output/carte_clusters_dbscan.html')
+    webbrowser.open('file://' + os.path.realpath('output/carte_clusters_dbscan.html'))
 
 if __name__ == "__main__":
     main()
