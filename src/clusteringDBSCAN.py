@@ -71,8 +71,9 @@ def visualize_clusters(data, n_clusters):
             location=[row['lat'], row['long']],
             radius=3,
             color=colors[color_idx],
+            stroke=False if cluster_id < 0 else True,
             fill=True,
-            fill_opacity=0.5 if cluster_id >= 0 else 0.2
+            fill_opacity=0.5 if cluster_id >= 0 else 0.6
         ).add_to(m)
 
     # Ajouter les polygones convexes pour les clusters
