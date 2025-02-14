@@ -64,13 +64,13 @@ hotspots** in Lyon:
 
 -   Groups photos based on geographic coordinates.
 -   Assigns every point to a cluster, but results in **large, less interpretable
-    clusters**. ![kmeans](img/kmeans.png)
+    clusters**. ![kmeans](img/kmeans.jpg)
 
 ### Hierarchical Clustering
 
 -   Creates a hierarchical structure of clusters.
 -   More interpretable but **less efficient for large datasets**.
-    ![hierarchical](img/hierarchical.png)
+    ![hierarchical](img/hierarchical.jpg)
 
 ### DBSCAN Clustering (Final Choice)
 
@@ -79,7 +79,7 @@ hotspots** in Lyon:
 -   **We keep DBSCAN for further analysis** as it delivers the most meaningful
     results.
 -   **Sampling (10% of points)** is used to improve computational efficiency.
-    ![dbscan](img/dbscan.png) ![dbscanzoom](img/dbscanzoom.png)
+    ![dbscan](img/dbscan.jpg) ![dbscanzoom](img/dbscanzoom.jpg)
 
 ---
 
@@ -99,7 +99,7 @@ labels:
     terms** in its associated photos. ![wordcloud](img/wordcloud.png)
 
 **Result**: We obtain **highly relevant cluster names**, which are displayed on
-the interactive map. ![textprocessing](img/textprocessing.png)
+the interactive map. ![textprocessing](img/textprocessing.jpg)
 
 ---
 
@@ -112,7 +112,7 @@ year**, we:
 -   **Generate a Heatmap** → Showing the locations with the highest activity.
 -   **Findings**: This period corresponds to the **Fête des Lumières** in Lyon.
 
-![wordcloudDecember](img/wordcloudDecember.png) ![december](img/december.png)
+![wordcloudDecember](img/wordcloudDecember.png) ![december](img/december.jpg)
 
 To generalize this approach, we extend it to **any date range** → allowing users
 to input a timeframe and discover **relevant events and activities**.
@@ -132,7 +132,7 @@ Presqu’île**.
 -   **Interactive Map** → Displays the recommended **optimal itinerary**.
 
 This allows tourists to efficiently **visit multiple hotspots** in the most
-**time-effective way**. ![tsp](img/tsp.png)
+**time-effective way**. ![tsp](img/tsp.jpg)
 
 ---
 
